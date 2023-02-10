@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">SilkLibrary</string>
+    <string name="record">Record</string>
+    <string name="stop">Stop</string>
+    <string name="encode">Encode</string>
+    <string name="decode">Decode</string>
+    <string name="recording">Recording…</string>
+    <string name="record_file">Record file:%s</string>
+    <string name="encoding">encoding…</string>
+    <string name="encode_done">encode success,pcm file has been saved in %s</string>
+    <string name="decoding">decoding…</string>
+    <string name="decode_done">decode successfully,silk file has been save in %s</string>
+</resources>
