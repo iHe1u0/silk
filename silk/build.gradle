@@ -53,11 +53,17 @@ task sourcesJar(type: Jar) {
     classifier 'sources'
     from android.sourceSets.main.java.getSrcDirs()
 }
+
 publishing {
-    //repositories { RepositoryHandler handler ->
-    //    handler.mavenLocal()
-    //    // handler.maven()
-    //}
+    repositories {
+        maven {
+            credentials {
+                username = "$user"
+                password = "$pwd"
+            }
+            url = "https://s01.oss.sonatype.org/content/repositories/releases/"
+        }
+    }
     publications { PublicationContainer publication ->
         release(MavenPublication) {
             afterEvaluate {
@@ -84,8 +90,6 @@ publishing {
                     }
                 }
             }
-            // afterEvaluate { artifact(tasks.getByName("bundleReleaseAar")) } // 方式一：生成aar包
-            // artifact "$buildDir/outputs/aar/${project.name}-release.aar" // 方式二：指定生成的aar路径
         }
     }
 }
