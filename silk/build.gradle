@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
+    id 'signing'
 }
 
 android {
@@ -39,13 +41,35 @@ android {
             version '3.22.1'
         }
     }
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 }
 
-dependencies {
-    implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.appcompat:appcompat:1.6.0'
-    implementation 'com.google.android.material:material:1.8.0'
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+task sourcesJar(type: Jar) {
+    classifier 'sources'
+    from android.sourceSets.main.java.getSrcDirs()
 }
+publishing {
+    repositories { RepositoryHandler handler ->
+        handler.mavenLocal()
+        // handler.maven()
+    }
+    publications { PublicationContainer publication ->
+        release(MavenPublication) {
+            afterEvaluate {
+                from components.release
+            }
+            groupId = "cc.imorning"
+            artifactId = "silk"
+            version = "1.0.0"
+            // afterEvaluate { artifact(tasks.getByName("bundleReleaseAar")) } // 方式一：生成aar包
+            // artifact "$buildDir/outputs/aar/${project.name}-release.aar" // 方式二：指定生成的aar路径
+        }
+    }
+}
+
+dependencies {}
