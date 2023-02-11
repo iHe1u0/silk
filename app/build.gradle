@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace 'cc.imorning.silk'
+    namespace 'cc.imorning.silk_demo'
     compileSdk 33
 
     defaultConfig {

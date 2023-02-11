@@ -1,4 +1,4 @@
-package cc.imorning.silk
+package cc.imorning.silk_demo
 
 import android.annotation.SuppressLint
 import android.media.AudioFormat

@@ -54,10 +54,10 @@ task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.getSrcDirs()
 }
 publishing {
-    repositories { RepositoryHandler handler ->
-        handler.mavenLocal()
-        // handler.maven()
-    }
+    //repositories { RepositoryHandler handler ->
+    //    handler.mavenLocal()
+    //    // handler.maven()
+    //}
     publications { PublicationContainer publication ->
         release(MavenPublication) {
             afterEvaluate {
@@ -66,6 +66,24 @@ publishing {
             groupId = "cc.imorning"
             artifactId = "silk"
             version = "1.0.0"
+            pom {
+                name = 'Silk Library'
+                description = 'A library to decode and encode silk file'
+                url = ''
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'iMorning'
+                        name = 'iMorning'
+                        email = 'morningos@foxmail.com'
+                    }
+                }
+            }
             // afterEvaluate { artifact(tasks.getByName("bundleReleaseAar")) } // 方式一：生成aar包
             // artifact "$buildDir/outputs/aar/${project.name}-release.aar" // 方式二：指定生成的aar路径
         }

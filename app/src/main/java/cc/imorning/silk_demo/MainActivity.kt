@@ -1,4 +1,4 @@
-package cc.imorning.silk
+package cc.imorning.silk_demo
 
 import android.Manifest
 import android.content.Intent
@@ -15,7 +15,9 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import cc.imorning.silk.databinding.ActivityMainBinding
+import cc.imorning.silk.SilkDecoder
+import cc.imorning.silk.SilkEncoder
+import cc.imorning.silk_demo.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
