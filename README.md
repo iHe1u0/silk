@@ -35,7 +35,7 @@ MainScope().launch(Dispatchers.IO) {
 }
 ```
 
-- Decode silk file into pam file
+- Decode silk file into pcm file
 
 ```kotlin
 MainScope().launch(Dispatchers.IO) {
