@@ -7,13 +7,22 @@ open class SilkJni {
 
     private external fun nativeGetSilkVersion(): String
 
-    private external fun nativeEncode(input: String, output: String): Int
+    private external fun nativeEncode(input: String, output: String, sampleRate: Int): Int
 
-    private external fun nativeDecode(input: String, output: String): Int
+    private external fun nativeDecode(input: String, output: String, sampleRate: Int): Int
 
-    // pcm file suffix
+    /**
+     * pcm file suffix
+     *
+     * @since 1.0.0
+     */
     val pcmSuffix = "pcm"
-    // silk file suffix
+
+    /**
+     * silk file suffix
+     *
+     * @since 1.0.0
+     */
     val silkSuffix = "silk"
 
     init {
@@ -33,14 +42,19 @@ open class SilkJni {
      * Encode a pcm file with silk
      *
      * @param pcmFilePath the path of pcm file
-     *
      * @param silkFilePath the path of silk file
+     * @param audioSampleRate encode sample rate
      *
+     * @since 1.0.0
      */
-    protected fun encode(pcmFilePath: String, silkFilePath: String) {
+    protected fun encode(
+        pcmFilePath: String,
+        silkFilePath: String,
+        audioSampleRate: AudioConfig.AudioSampleRate
+    ) {
         val inputFile = File(pcmFilePath)
         if (inputFile.exists()) {
-            nativeEncode(pcmFilePath, silkFilePath)
+            nativeEncode(pcmFilePath, silkFilePath, audioSampleRate.rate)
         } else {
             Log.e(TAG, "encode failed,file $pcmFilePath not exist")
         }
@@ -50,18 +64,23 @@ open class SilkJni {
      * Decode a silk file with silk
      *
      * @param silkFilePath the path of silk file
-     *
      * @param pcmFilePath the path of pcm file
+     * @param audioSampleRate decode sample rate
      *
+     * @since 1.0.0
      */
-    protected fun decode(silkFilePath: String, pcmFilePath: String) {
+    protected fun decode(
+        silkFilePath: String,
+        pcmFilePath: String,
+        audioSampleRate: AudioConfig.AudioSampleRate
+    ) {
         val inputFile = File(silkFilePath)
         if (inputFile.exists()) {
             var output = pcmFilePath
             if (pcmFilePath.isEmpty()) {
                 output = File(silkFilePath.replace(silkSuffix, pcmSuffix)).absolutePath
             }
-            nativeDecode(silkFilePath, output)
+            nativeDecode(silkFilePath, output, audioSampleRate.rate)
         }
     }
 

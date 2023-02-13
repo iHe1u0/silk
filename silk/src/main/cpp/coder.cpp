@@ -21,33 +21,8 @@ unsigned long Coder::resolutionTime() {
     return ((tv.tv_sec * 1000000) + (tv.tv_usec));
 }
 
-void Coder::print_decode_usage(char *argv[]) {
-    LOG_D("usage: %s in.bit out.pcm [settings]", argv[0]);
-    LOG_D("in.bit       : Bitstream input to Coder");
-    LOG_D("out.pcm      : Speech output from Coder");
-    LOG_D("   settings:");
-    LOG_D("-Fs_API <Hz> : Sampling rate of output signal in Hz; default: 24000");
-    LOG_D("-loss <perc> : Simulated packet loss percentage (0-100); default: 0");
-    LOG_D("-quiet       : Print out just some basic values");
-}
-
-void Coder::print_encode_usage(char *argv[]) {
-    LOG_D("usage: %s in.pcm out.bit [settings]", argv[0]);
-    LOG_D("in.pcm               : Speech input to encoder");
-    LOG_D("out.bit              : Bitstream output from encoder");
-    LOG_D("   settings:");
-    LOG_D("-Fs_API <Hz>         : API sampling rate in Hz, default: 24000");
-    LOG_D("-Fs_maxInternal <Hz> : Maximum internal sampling rate in Hz, default: 24000");
-    LOG_D("-packetlength <ms>   : Packet interval in ms, default: 20");
-    LOG_D("-rate <bps>          : Target bitrate; default: 25000");
-    LOG_D("-loss <perc>         : Uplink loss estimate, in percent (0-100); default: 0");
-    LOG_D("-inbandFEC <flag>    : Enable inband FEC usage (0/1); default: 0");
-    LOG_D("-compldoExity <comp>   : Set compldoExity, 0: low, 1: medium, 2: high; default: 2");
-    LOG_D("-DTX <flag>          : Enable DTX (0/1); default: 0");
-    LOG_D("-quiet               : Print only some basic values");
-}
-
-int Coder::decode(const std::string &inputFile, const std::string &outputFile) {
+int
+Coder::decode(const std::string &inputFile, const std::string &outputFile, SKP_int32 sampleRate) {
     unsigned long totalTime, startTime;
     double fileTime;
     size_t counter;
@@ -63,7 +38,7 @@ int Coder::decode(const std::string &inputFile, const std::string &outputFile) {
     char speechOutFileName[150], bitInFileName[150];
     //define input and output file
     FILE *bitInFile, *speechOutFile;
-    SKP_int32 packetSize_ms = 0, API_Fs_Hz = 0;
+    SKP_int32 packetSize_ms = 0;
     SKP_int32 decSizeBytes;
     void *psDec;
     SKP_float loss_prob;
@@ -89,8 +64,8 @@ int Coder::decode(const std::string &inputFile, const std::string &outputFile) {
     /* Open files */
     bitInFile = fopen(bitInFileName, "rb");
     if (bitInFile == nullptr) {
-        LOG_D("Error: could not open input file %s", bitInFileName);
-        doExit(0);
+        LOG_E("Error: could not open input file %s", bitInFileName);
+        return -1;
     }
 
     /* Check Silk header */
@@ -100,22 +75,22 @@ int Coder::decode(const std::string &inputFile, const std::string &outputFile) {
         header_buf[strlen("#!SILK_V3")] = '\0'; /* Terminate with a null character */
         if (strcmp(header_buf, "#!SILK_V3") != 0) {
             /* Non-equal strings */
-            LOG_D("Error: Wrong Header %s", header_buf);
-            doExit(0);
+            LOG_E("Error: Wrong Header %s", header_buf);
+            return -1;
         }
     }
 
     speechOutFile = fopen(speechOutFileName, "wb");
     if (speechOutFile == nullptr) {
-        LOG_D("Error: could not open output file %s", speechOutFileName);
-        doExit(0);
+        LOG_E("Error: could not open output file %s", speechOutFileName);
+        return -1;
     }
 
     /* Set the samplingrate that is requested for the output */
-    if (API_Fs_Hz == 0) {
+    if (sampleRate == 0) {
         DecControl.API_sampleRate = 24000;
     } else {
-        DecControl.API_sampleRate = API_Fs_Hz;
+        DecControl.API_sampleRate = sampleRate;
     }
 
     /* Initialize to one frame per packet, for proper concealment before first packet arrives */
@@ -184,8 +159,11 @@ int Coder::decode(const std::string &inputFile, const std::string &outputFile) {
             for (i = 0; i < MAX_LBRR_DELAY; i++) {
                 if (nBytesPerPacket[i + 1] > 0) {
                     startTime = resolutionTime();
-                    SKP_Silk_SDK_search_for_LBRR(payloadPtr, nBytesPerPacket[i + 1], (i + 1),
-                                                 FECpayload, &nBytesFEC);
+                    SKP_Silk_SDK_search_for_LBRR(payloadPtr,
+                                                 nBytesPerPacket[i + 1],
+                                                 (i + 1),
+                                                 FECpayload,
+                                                 &nBytesFEC);
                     totalTime += resolutionTime() - startTime;
                     if (nBytesFEC > 0) {
                         payloadToDec = FECpayload;
@@ -212,7 +190,11 @@ int Coder::decode(const std::string &inputFile, const std::string &outputFile) {
             frames = 0;
             do {
                 /* Decode 20 ms */
-                ret = SKP_Silk_SDK_Decode(psDec, &DecControl, 0, payloadToDec, nBytes, outPtr,
+                ret = SKP_Silk_SDK_Decode(psDec,
+                                          &DecControl,
+                                          0, payloadToDec,
+                                          nBytes,
+                                          outPtr,
                                           &len);
                 if (ret) {
                     LOG_D("SKP_Silk_SDK_Decode returned %d", ret);
@@ -233,7 +215,12 @@ int Coder::decode(const std::string &inputFile, const std::string &outputFile) {
             /* Loss: Decode enough frames to cover one packet duration */
             for (i = 0; i < DecControl.framesPerPacket; i++) {
                 /* Generate 20 ms */
-                ret = SKP_Silk_SDK_Decode(psDec, &DecControl, 1, payloadToDec, nBytes, outPtr,
+                ret = SKP_Silk_SDK_Decode(psDec,
+                                          &DecControl,
+                                          1,
+                                          payloadToDec,
+                                          nBytes,
+                                          outPtr,
                                           &len);
                 if (ret) {
                     LOG_D("SKP_Silk_Decode returned %d", ret);
@@ -296,7 +283,12 @@ int Coder::decode(const std::string &inputFile, const std::string &outputFile) {
             frames = 0;
             do {
                 /* Decode 20 ms */
-                ret = SKP_Silk_SDK_Decode(psDec, &DecControl, 0, payloadToDec, nBytes, outPtr,
+                ret = SKP_Silk_SDK_Decode(psDec,
+                                          &DecControl,
+                                          0,
+                                          payloadToDec,
+                                          nBytes,
+                                          outPtr,
                                           &len);
                 if (ret) {
                     LOG_D("SKP_Silk_SDK_Decode returned %d", ret);
@@ -315,11 +307,16 @@ int Coder::decode(const std::string &inputFile, const std::string &outputFile) {
             } while (DecControl.moreInternalDecoderFrames);
         } else {
             /* Loss: Decode enough frames to cover one packet duration */
-
             /* Generate 20 ms */
             for (i = 0; i < DecControl.framesPerPacket; i++) {
-                ret = SKP_Silk_SDK_Decode(psDec, &DecControl, 1, payloadToDec, nBytes, outPtr,
-                                          &len);
+                ret = SKP_Silk_SDK_Decode(
+                        psDec,
+                        &DecControl,
+                        1,
+                        payloadToDec,
+                        nBytes,
+                        outPtr,
+                        &len);
                 if (ret) {
                     LOG_D("SKP_Silk_Decode returned %d", ret);
                 }
@@ -365,15 +362,12 @@ int Coder::decode(const std::string &inputFile, const std::string &outputFile) {
         LOG_D("File length:                 %.3f s", fileTime);
         LOG_D("Time for decoding:           %.3f s (%.3f%% of realtime)", 1e-6 * totalTime,
               1e-4 * totalTime / fileTime);
-        LOG_D("");
-    } else {
-        /* print time and % of realtime */
-        LOG_D("%.3f %.3f %d", 1e-6 * totalTime, 1e-4 * totalTime / fileTime, totPackets);
     }
     return 0;
 }
 
-int Coder::encode(const std::string &inputFile, const std::string &outputFile) {
+int Coder::encode(const std::string &inputFile, const std::string &outputFile,
+                  const SKP_int32 apiSampleRate) {
     unsigned long totalTime, startTime;
     double fileTime;
     size_t counter;
@@ -387,7 +381,6 @@ int Coder::encode(const std::string &inputFile, const std::string &outputFile) {
     SKP_int32 encSizeBytes;
     void *psEnc;
     /* default settings */
-    SKP_int32 API_fs_Hz = 24000;
     SKP_int32 max_internal_fs_Hz = 0;
     SKP_int32 targetRate_bps = 25000;
     SKP_int32 smplsSinceLastPacket, packetSize_ms = 20;
@@ -402,38 +395,37 @@ int Coder::encode(const std::string &inputFile, const std::string &outputFile) {
     /* If no max internal is specified, set to minimum of API fs and 24 kHz */
     if (max_internal_fs_Hz == 0) {
         max_internal_fs_Hz = 24000;
-        if (API_fs_Hz < max_internal_fs_Hz) {
-            max_internal_fs_Hz = API_fs_Hz;
+        if (apiSampleRate < max_internal_fs_Hz) {
+            max_internal_fs_Hz = apiSampleRate;
         }
     }
 
 #ifdef DEBUG
-    /* Print options */
     LOG_D("********** Silk Encoder (Fixed Point) v %s ********************",
           SKP_Silk_SDK_get_version());
     LOG_D("********** Compiled for %d bit cpu ******************************* ",
           (int) sizeof(void *) * 8);
     LOG_D("Input:                          %s", inputFilePath);
     LOG_D("Output:                         %s", outputFilePath);
-    LOG_D("API sampling rate:              %d Hz", API_fs_Hz);
+    LOG_D("API sampling rate:              %d Hz", apiSampleRate);
     LOG_D("Maximum internal sampling rate: %d Hz", max_internal_fs_Hz);
     LOG_D("Packet interval:                %d ms", packetSize_ms);
     LOG_D("Inband FEC used:                %d", INBandFEC_enabled);
     LOG_D("DTX used:                       %d", DTX_enabled);
     LOG_D("CompldoExity:                     %d", compldoExity_mode);
     LOG_D("Target bitrate:                 %d bps", targetRate_bps);
-    /* Open files */
 #endif
 
+    /* Open files */
     speechInFile = fopen(inputFilePath, "rb");
     if (speechInFile == nullptr) {
-        LOG_D("Error: could not open input file %s", inputFilePath);
-        doExit(0);
+        LOG_E("Error: could not open input file %s", inputFilePath);
+        return -1;
     }
     bitOutFile = fopen(outputFilePath, "wb");
     if (bitOutFile == nullptr) {
-        LOG_D("Error: could not open output file %s", outputFilePath);
-        doExit(0);
+        LOG_E("Error: could not open output file %s", outputFilePath);
+        return -1;
     }
 
     /* Add Silk header to stream */
@@ -445,8 +437,8 @@ int Coder::encode(const std::string &inputFile, const std::string &outputFile) {
     /* Create Encoder */
     ret = SKP_Silk_SDK_Get_Encoder_Size(&encSizeBytes);
     if (ret) {
-        LOG_D("Error: SKP_Silk_create_encoder returned %d", ret);
-        doExit(0);
+        LOG_E("Error: SKP_Silk_create_encoder returned %d", ret);
+        return ret;
     }
 
     psEnc = malloc(encSizeBytes);
@@ -454,24 +446,24 @@ int Coder::encode(const std::string &inputFile, const std::string &outputFile) {
     /* Reset Encoder */
     ret = SKP_Silk_SDK_InitEncoder(psEnc, &encStatus);
     if (ret) {
-        LOG_D("Error: SKP_Silk_reset_encoder returned %d", ret);
-        doExit(0);
+        LOG_E("Error: SKP_Silk_reset_encoder returned %d", ret);
+        return ret;
     }
 
     /* Set Encoder parameters */
-    encControl.API_sampleRate = API_fs_Hz;
+    encControl.API_sampleRate = apiSampleRate;
     encControl.maxInternalSampleRate = max_internal_fs_Hz;
-    encControl.packetSize = (packetSize_ms * API_fs_Hz) / 1000;
+    encControl.packetSize = (packetSize_ms * apiSampleRate) / 1000;
     encControl.packetLossPercentage = packetLoss_perc;
     encControl.useInBandFEC = INBandFEC_enabled;
     encControl.useDTX = DTX_enabled;
     encControl.complexity = compldoExity_mode;
     encControl.bitRate = (targetRate_bps > 0 ? targetRate_bps : 0);
 
-    if (API_fs_Hz > MAX_API_FS_KHZ * 1000 || API_fs_Hz < 0) {
+    if (apiSampleRate > MAX_API_FS_KHZ * 1000 || apiSampleRate < 0) {
         LOG_D("Error: API sampling rate = %d out of range, valid range 8000 - 48000",
-              API_fs_Hz);
-        doExit(0);
+              apiSampleRate);
+        return -1;
     }
 
     totalTime = 0;
@@ -484,12 +476,12 @@ int Coder::encode(const std::string &inputFile, const std::string &outputFile) {
 
     while (true) {
         /* Read input from file */
-        counter = fread(in, sizeof(SKP_int16), (frameSizeReadFromFile_ms * API_fs_Hz) / 1000,
+        counter = fread(in, sizeof(SKP_int16), (frameSizeReadFromFile_ms * apiSampleRate) / 1000,
                         speechInFile);
 #ifdef _SYSTEM_IS_BIG_ENDIAN
         swap_endian( in, counter );
 #endif
-        if ((SKP_int) counter < ((frameSizeReadFromFile_ms * API_fs_Hz) / 1000)) {
+        if ((SKP_int) counter < ((frameSizeReadFromFile_ms * apiSampleRate) / 1000)) {
             break;
         }
 
@@ -512,7 +504,7 @@ int Coder::encode(const std::string &inputFile, const std::string &outputFile) {
 
         smplsSinceLastPacket += (SKP_int) counter;
 
-        if (((1000 * smplsSinceLastPacket) / API_fs_Hz) == packetSize_ms) {
+        if (((1000 * smplsSinceLastPacket) / apiSampleRate) == packetSize_ms) {
             /* Sends a dummy zero size packet in case of DTX period  */
             /* to make it work with the decoder test program.        */
             /* In practice should be handled by RTP sequence numbers */
@@ -565,8 +557,4 @@ int Coder::encode(const std::string &inputFile, const std::string &outputFile) {
     }
 
     return 0;
-}
-
-void Coder::doExit(int statusCode) {
-    LOG_E("program exit with code: %d", statusCode);
 }

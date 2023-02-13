@@ -21,6 +21,7 @@ static SKP_int32 rand_seed = 1;
 #define DEBUG
 #define TAG "NativeCode"
 #ifdef DEBUG
+
 #define LOG_E(...) __android_log_print(ANDROID_LOG_ERROR,    TAG, __VA_ARGS__)
 #define LOG_W(...) __android_log_print(ANDROID_LOG_WARN,     TAG, __VA_ARGS__)
 #define LOG_I(...) __android_log_print(ANDROID_LOG_INFO,     TAG, __VA_ARGS__)
@@ -32,18 +33,40 @@ static SKP_int32 rand_seed = 1;
 #define LOG_D(...)
 #endif
 
+enum SampleRate {
+    SAMPLE_RATE_8K = 8000,
+    SAMPLE_RATE_12K = 12000,
+    SAMPLE_RATE_16K = 16000,
+    SAMPLE_RATE_24K = 24000,
+    SAMPLE_RATE_32K = 32000,
+    SAMPLE_RATE_44K = 44100,
+    SAMPLE_RATE_48K = 48000
+};
+
+enum MaxSample {
+    MAX_SAMPLE_RATE_8K = 8000,
+    MAX_SAMPLE_RATE_12K = 12000,
+    MAX_SAMPLE_RATE_16K = 16000,
+    MAX_SAMPLE_RATE_24K = 24000
+};
+
 class Coder {
 public:
-    static int decode(const std::string &inputFile, const std::string &outputFile);
+    static int decode(const std::string &inputFile,
+                      const std::string &outputFile,
+                      const SKP_int32 sampleRate = 24000);
 
-    static int encode(const std::string &inputFile, const std::string &outputFile);
+    /**
+     * Encode input file
+     * @param inputFile input file path,must is a pcm file
+     * @param outputFile output file path
+     * @param sampleRate sample rate
+     * @return 0 if success
+     */
+    static int encode(const std::string &inputFile,
+                      const std::string &outputFile,
+                      const SKP_int32 sampleRate = 0);
 
 private:
     static unsigned long resolutionTime();
-
-    static void print_decode_usage(char *argv[]);
-
-    static void print_encode_usage(char *argv[]);
-
-    static void doExit(int statusCode);
 };

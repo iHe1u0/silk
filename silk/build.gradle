@@ -33,7 +33,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
     externalNativeBuild {
         cmake {
@@ -71,11 +71,11 @@ publishing {
             }
             groupId = "cc.imorning"
             artifactId = "silk"
-            version = "1.0.0"
+            version = "1.0.1"
             pom {
                 name = 'Silk Library'
                 description = 'A library to decode and encode silk file'
-                url = ''
+                url = 'http://docs.imorning.cc/open_sources/silk'
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'
@@ -94,4 +94,6 @@ publishing {
     }
 }
 
-dependencies {}
+dependencies {
+    implementation 'androidx.annotation:annotation:1.5.0'
+}

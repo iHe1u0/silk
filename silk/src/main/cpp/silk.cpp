@@ -1,7 +1,12 @@
 #include <jni.h>
 #include <string>
 #include <SKP_Silk_SDK_API.h>
+#include "silk.h"
 #include "coder.h"
+
+jstring getVersion(JNIEnv *env, jobject thiz) {
+    return env->NewStringUTF(SKP_Silk_SDK_get_version());
+}
 
 std::string jstring2string(JNIEnv *env, jstring jStr) {
     if (!jStr) {
@@ -10,7 +15,7 @@ std::string jstring2string(JNIEnv *env, jstring jStr) {
     const jclass stringClass = env->GetObjectClass(jStr);
     const jmethodID getBytes = env->GetMethodID(stringClass, "getBytes", "(Ljava/lang/String;)[B");
     const auto stringJbytes = (jbyteArray) env->CallObjectMethod(jStr, getBytes,
-                                                                       env->NewStringUTF("UTF-8"));
+                                                                 env->NewStringUTF("UTF-8"));
 
     auto length = (size_t) env->GetArrayLength(stringJbytes);
     jbyte *pBytes = env->GetByteArrayElements(stringJbytes, nullptr);
@@ -23,30 +28,23 @@ std::string jstring2string(JNIEnv *env, jstring jStr) {
     return ret;
 }
 
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_cc_imorning_silk_SilkJni_nativeGetSilkVersion(JNIEnv *env, jobject obj) {
-    return env->NewStringUTF(SKP_Silk_SDK_get_version());
-}
+jint nativeEncode(JNIEnv *env, jobject thiz, jstring jInput,
+                                           jstring jOutput,
+                                           jint sample_rate) {
 
-extern "C"
-JNIEXPORT jint JNICALL
-Java_cc_imorning_silk_SilkJni_nativeEncode(JNIEnv *env, jobject obj,
-                                           jstring jInput, jstring jOutput) {
     std::string input = jstring2string(env, jInput);
     std::string output = jstring2string(env, jOutput);
-    int result = Coder::encode(input, output);
+    int result = Coder::encode(input, output, sample_rate);
     LOG_I("encode_result: %d", result);
     return result;
 }
 
-extern "C"
-JNIEXPORT jint JNICALL
-Java_cc_imorning_silk_SilkJni_nativeDecode(JNIEnv *env, jobject obj,
-                                           jstring jInput, jstring jOutput) {
+jint  nativeDecode(JNIEnv *env, jobject obj, jstring jInput,
+                                           jstring jOutput,
+                                           jint sample_rate) {
     std::string input = jstring2string(env, jInput);
     std::string output = jstring2string(env, jOutput);
-    int result = Coder::decode(input, output);
+    int result = Coder::decode(input, output, sample_rate);
     LOG_I("decode_result: %d", result);
     return result;
 }

@@ -206,7 +206,7 @@ endif ()
 
 add_library(silk-v3 STATIC ${silk_SOURCES})
 
-add_library(silk SHARED silk.cpp coder.cpp)
+add_library(silk SHARED jni_init.cpp silk.cpp coder.cpp)
 
 find_library(log-lib log)
 

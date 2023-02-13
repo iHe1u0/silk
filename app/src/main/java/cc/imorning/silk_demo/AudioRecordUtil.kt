@@ -4,14 +4,15 @@ import android.annotation.SuppressLint
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import cc.imorning.silk.AudioConfig
 import java.io.File
 import java.io.FileOutputStream
 
 class AudioRecordUtil private constructor() {
 
-    private val sampleRateInHz = 44100
-    private val channelConfig = AudioFormat.CHANNEL_IN_MONO
-    private val audioFormat = AudioFormat.ENCODING_PCM_16BIT
+    private val audioSampleRateInHz = AudioConfig.AudioSampleRate.SAMPLE_RATE_16K
+    private val channelConfig = AudioConfig.AudioChannelConfig.CHANNEL_IN_MONO
+    private val audioFormat = AudioConfig.AudioFormat.PCM_16
 
     private var recorderState = true
 
@@ -22,11 +23,11 @@ class AudioRecordUtil private constructor() {
     @SuppressLint("MissingPermission")
     private fun init() {
         val recordMinBufferSize =
-            AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat)
+            AudioRecord.getMinBufferSize(audioSampleRateInHz.rate, channelConfig, audioFormat)
         buffer = ByteArray(recordMinBufferSize)
         audioRecord = AudioRecord(
-            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
-            sampleRateInHz,
+            MediaRecorder.AudioSource.MIC,
+            audioSampleRateInHz.rate,
             channelConfig,
             audioFormat,
             recordMinBufferSize

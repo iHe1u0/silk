@@ -15,8 +15,10 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import cc.imorning.silk.AudioConfig
 import cc.imorning.silk.SilkDecoder
 import cc.imorning.silk.SilkEncoder
+import cc.imorning.silk.SilkJni
 import cc.imorning.silk_demo.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -49,6 +51,8 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkPermission()
         }
+        // silk library version
+        Log.d(TAG, "Silk library version:${SilkJni.getInstance().getVersion()}")
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -107,14 +111,21 @@ class MainActivity : AppCompatActivity(), OnClickListener {
                 binding.record.isEnabled = true
                 binding.stop.isEnabled = false
                 binding.encode.isEnabled = true
-                status.text = getString(R.string.record_file).format(pcmFile)
+                status.text = getString(R.string.record_file)
+                    .format(pcmFile, pcmFile.length() / 1024)
             }
             binding.encode.id -> {
                 status.text = getString(R.string.encoding)
                 MainScope().launch(Dispatchers.IO) {
-                    SilkEncoder.doEncode(pcmFile.absolutePath, slkFile.absolutePath).orEmpty()
+                    val outputPath = SilkEncoder.doEncode(
+                        pcmFilePath = pcmFile.absolutePath,
+                        silkFilePath = slkFile.absolutePath,
+                        sampleRate = AudioConfig.AudioSampleRate.SAMPLE_RATE_16K
+                    ).orEmpty()
                     runOnUiThread {
-                        status.text = getString(R.string.encode_done).format(pcmFile.path)
+                        status.text =
+                            getString(R.string.encode_done)
+                                .format(outputPath, slkFile.length() / 1024)
                         binding.decode.isEnabled = true
                     }
                 }
@@ -123,11 +134,16 @@ class MainActivity : AppCompatActivity(), OnClickListener {
             binding.decode.id -> {
                 status.text = getString(R.string.decoding)
                 MainScope().launch(Dispatchers.IO) {
-                    SilkDecoder.doDecode(slkFile.absolutePath, pcmFile.absolutePath).orEmpty()
+                    val outputPath = SilkDecoder.doDecode(
+                        silkFilePath = slkFile.absolutePath,
+                        pcmFilePath = pcmFile.absolutePath,
+                        sampleRate = AudioConfig.AudioSampleRate.SAMPLE_RATE_16K
+                    ).orEmpty()
                     runOnUiThread {
-                        status.text = getString(R.string.decode_done).format(slkFile.path)
+                        status.text =
+                            getString(R.string.decode_done)
+                                .format(outputPath, pcmFile.length() / 1024)
                     }
-                    Log.d(TAG, "Saved in:${pcmFile.path}")
                 }
             }
         }

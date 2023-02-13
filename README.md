@@ -1,7 +1,7 @@
 
-![license](https://img.shields.io/aur/license/android-studio)
-![Release Version](https://img.shields.io/badge/release-1.0.0-brightgreen.svg)
-![Platform](https://img.shields.io/badge/Platform-%20Android-brightgreen.svg)
+![GitHub](https://img.shields.io/github/license/morningos/silk)
+![Maven Central](https://img.shields.io/maven-central/v/cc.imorning/silk)
+![GitHub issues](https://img.shields.io/github/issues/morningos/silk)
 
 
 # silk
@@ -20,8 +20,8 @@ Add the following lines to `build.gradle` on your app module:
 
 ```gradle
 dependencies {
-    implementation 'cc.imorning:silk:1.0.0'
-    // replace "1.0.0" with any available version
+    implementation 'cc.imorning:silk:1.0.1'
+    // replace "1.0.1" with any available version
 }
 ```
 
@@ -31,7 +31,12 @@ dependencies {
 
 ```kotlin
 MainScope().launch(Dispatchers.IO) {
-    SilkEncoder.doEncode(pcmFile.absolutePath, slkFile.absolutePath).orEmpty()
+    val outputPath = SilkEncoder.doEncode(
+        pcmFilePath = pcmFile.absolutePath,
+        silkFilePath = slkFile.absolutePath,
+        sampleRate = AudioConfig.AudioSampleRate.SAMPLE_RATE_16K
+    ).orEmpty()
+    // ...
 }
 ```
 
@@ -39,7 +44,12 @@ MainScope().launch(Dispatchers.IO) {
 
 ```kotlin
 MainScope().launch(Dispatchers.IO) {
-    SilkDecoder.doDecode(slkFile.absolutePath, pcmFile.absolutePath).orEmpty()
+    val outputPath = SilkDecoder.doDecode(
+        silkFilePath = slkFile.absolutePath,
+        pcmFilePath = pcmFile.absolutePath,
+        sampleRate = AudioConfig.AudioSampleRate.SAMPLE_RATE_16K
+    ).orEmpty()
+    // ...
 }
 ```
 
