@@ -57,6 +57,8 @@ MainScope().launch(Dispatchers.IO) {
 
 Post an [issues](https://github.com/morningos/silk/issues) if you encounter any problem in using.
 
+Docs:[silk docs](http://docs.imorning.cc/open_sources/silk/cc/imorning/silk/package-summary.html)
+
 ## License
 
 ```
