@@ -73,12 +73,12 @@ class MainActivity : AppCompatActivity(), OnClickListener {
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     val uri = Uri.parse("package:${BuildConfig.APPLICATION_ID}")
-                    startActivity(
-                        Intent(
-                            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                            uri
+                    try{
+                        startActivity(
+                            Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,uri)
                         )
-                    )
+                    } catch(e: Exception) {
+                    }
                 }
             }
         }
