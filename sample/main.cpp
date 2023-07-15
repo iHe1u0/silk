@@ -9,6 +9,6 @@ int main() {
 #ifdef _WIN32
     std::locale::global(std::locale("en_US.UTF-8"));
 #endif
-    std::cout << "当前silk3版本:" << getVersion() << std::endl;
+    std::cout << "Current silk library version:" << getVersion() << std::endl;
     return 0;
 }
