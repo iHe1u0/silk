@@ -3,8 +3,9 @@ cmake_minimum_required(VERSION 3.22.1)
 project(silk)
 
 include_directories(
-        interface
+        include
         src
+        sample
 )
 
 set(silk_c_SOURCES
@@ -174,10 +175,10 @@ set(silk_private_HEADERS
         )
 
 set(silk_public_HEADERS
-        interface/SKP_Silk_control.h
-        interface/SKP_Silk_errors.h
-        interface/SKP_Silk_SDK_API.h
-        interface/SKP_Silk_typedef.h
+        include/SKP_Silk_control.h
+        include/SKP_Silk_errors.h
+        include/SKP_Silk_SDK_API.h
+        include/SKP_Silk_typedef.h
         )
 
 set(silk_SOURCES
@@ -206,10 +207,12 @@ endif ()
 
 add_library(silk-v3 STATIC ${silk_SOURCES})
 
-add_library(silk SHARED jni_init.cpp silk.cpp coder.cpp)
+add_library(silk STATIC
+        sample/silk.cpp
+        sample/coder.cpp)
 
-find_library(log-lib log)
+add_executable(silk-sample sample/main.cpp)
 
-target_link_libraries(silk
-        silk-v3
-        ${log-lib})
+target_link_libraries(silk silk-v3)
+
+target_link_libraries(silk-sample silk)

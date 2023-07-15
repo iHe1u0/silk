@@ -1,10 +1,16 @@
-//
-// Created by iMorning on 2022/8/29.
-//
+/**
+ * @file coder.cpp 
+ * @author fkkt-55(admin@catcompany.cn)
+ * @brief Silk Coder program
+ * @version 0.1
+ * @date 2023-07-15
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #pragma once
 
-#include <jni.h>
-#include <android/log.h>
+#include <stdio.h>
 #include <string>
 #include <SKP_Silk_SDK_API.h>
 
@@ -18,14 +24,14 @@ static SKP_int32 rand_seed = 1;
 #define MAX_LBRR_DELAY          2
 
 /* For log */
-#define DEBUG
+#define DEBUG 1
 #define TAG "NativeCode"
 #ifdef DEBUG
 
-#define LOG_E(...) __android_log_print(ANDROID_LOG_ERROR,    TAG, __VA_ARGS__)
-#define LOG_W(...) __android_log_print(ANDROID_LOG_WARN,     TAG, __VA_ARGS__)
-#define LOG_I(...) __android_log_print(ANDROID_LOG_INFO,     TAG, __VA_ARGS__)
-#define LOG_D(...) __android_log_print(ANDROID_LOG_DEBUG,    TAG, __VA_ARGS__)
+#define LOG_E(...) printf_s(TAG, __VA_ARGS__)
+#define LOG_W(...) printf_s(TAG, __VA_ARGS__)
+#define LOG_I(...) printf_s(TAG, __VA_ARGS__)
+#define LOG_D(...) printf_s(TAG, __VA_ARGS__)
 #else
 #define LOG_E(...)
 #define LOG_W(...)

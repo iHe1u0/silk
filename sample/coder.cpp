@@ -1,25 +1,24 @@
-//
-// Created by iMorning on 2022/8/29.
-//
-/*****************************/
-/*   Silk Coder program    */
-/*****************************/
-
-#include "coder.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 #include <string>
-#include "SKP_Silk_SDK_API.h"
-#include "SKP_Silk_SigProc_FIX.h"
+#include <SKP_Silk_SDK_API.h>
+#include <SKP_Silk_main_FIX.h>
+#include <chrono>
+#include "coder.h"
 
-/* O: time in usec*/
 unsigned long Coder::resolutionTime() {
-    struct timeval tv{};
-    gettimeofday(&tv, nullptr);
-    return ((tv.tv_sec * 1000000) + (tv.tv_usec));
+  // 使用 std::chrono::high_resolution_clock 获取当前时间
+  std::chrono::high_resolution_clock::time_point _now = std::chrono::high_resolution_clock::now();
+
+  // 将时间转换为微秒
+  auto duration = _now.time_since_epoch();
+
+  // 返回时间
+  return duration.count();
 }
+
 
 int
 Coder::decode(const std::string &inputFile, const std::string &outputFile, SKP_int32 sampleRate) {
